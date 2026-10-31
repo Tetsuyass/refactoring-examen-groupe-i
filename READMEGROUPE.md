@@ -1,0 +1,1 @@
+# DISCLAIMER : Notre branche par défaut est **main** mais GitHub ne veut pas changer.
