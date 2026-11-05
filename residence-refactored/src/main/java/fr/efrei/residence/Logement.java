@@ -29,6 +29,10 @@ public abstract class Logement implements ILogement {
         return occupant == null;
     }
 
+    public int getNombreOccupants() {
+        return occupant == null ? 0 : 1;
+    }
+
     public boolean estAccessiblePMR() {
         // seul le bâtiment A a un ascenseur
         return etage == 0 || numero.startsWith(prefixeAscenceur);

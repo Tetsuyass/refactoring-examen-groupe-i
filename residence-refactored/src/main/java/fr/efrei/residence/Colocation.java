@@ -29,6 +29,11 @@ public class Colocation extends Logement {
     }
 
     @Override
+    public int getNombreOccupants() {
+        return colocataires.size();
+    }
+
+    @Override
     public Etudiant getOccupant() {
         if (colocataires.isEmpty()) return null;
         return colocataires.get(0);
