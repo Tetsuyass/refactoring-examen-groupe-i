@@ -16,6 +16,7 @@ import fr.efrei.residence.contrat.TypeLogement;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalDouble;
@@ -82,10 +83,8 @@ public class NouveauSystemeAdapter implements SystemeResidence {
         if (l == null) {
             return OptionalDouble.empty();
         }
-        Set<Option> o = d.options();
         return OptionalDouble.of(new CalculateurLoyer().calculerLoyer(l, fr.efrei.residence.Profil.valueOf(d.profil().name()), d.echelonBourse(),
-                o.contains(Option.PARKING), o.contains(Option.MENAGE), o.contains(Option.LAVERIE),
-                o.contains(Option.FIBRE), o.contains(Option.ASSURANCE)));
+                options(d.options())));
     }
 
     @Override
@@ -94,9 +93,7 @@ public class NouveauSystemeAdapter implements SystemeResidence {
         if (e == null) {
             return Optional.empty();
         }
-        Set<Option> o = d.options();
-        Bail b = gestion.attribuerLogement(e, fr.efrei.residence.TypeLogement.valueOf(d.type().name()), o.contains(Option.PARKING), o.contains(Option.MENAGE),
-                o.contains(Option.LAVERIE), o.contains(Option.FIBRE), o.contains(Option.ASSURANCE), d.dateSignature());
+        Bail b = gestion.attribuerLogement(e, fr.efrei.residence.TypeLogement.valueOf(d.type().name()), options(d.options()), d.dateSignature());
         return Optional.ofNullable(b).map(Bail::getId);
     }
 
@@ -164,6 +161,14 @@ public class NouveauSystemeAdapter implements SystemeResidence {
             notifications.add(new Notification(Canal.COURRIER, courrier[0], courrier[1]));
         }
         return notifications;
+    }
+
+    private static Set<fr.efrei.residence.enums.Option> options(Set<Option> options) {
+        Set<fr.efrei.residence.enums.Option> traduites = EnumSet.noneOf(fr.efrei.residence.enums.Option.class);
+        for (Option option : options) {
+            traduites.add(fr.efrei.residence.enums.Option.valueOf(option.name()));
+        }
+        return traduites;
     }
 
     private static Etudiant etudiant(String ref) {
