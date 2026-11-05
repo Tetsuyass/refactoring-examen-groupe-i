@@ -29,7 +29,7 @@ public class AssembleurLoyer {
     /**
      * @return la chaîne complète, dont le montant n'est pas arrondi
      */
-    public static ComposanteLoyer assembler(Logement l, Profil profil, int echelon, Set<Option> options) {
+    public ComposanteLoyer assembler(Logement l, Profil profil, int echelon, Set<Option> options) {
         TarifLogement tarif = FabriqueTarifLogement.pour(l.getType());
 
         ComposanteLoyer loyer = new LoyerDeBase(tarif, l);

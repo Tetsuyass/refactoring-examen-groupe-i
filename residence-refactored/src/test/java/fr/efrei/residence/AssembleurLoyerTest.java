@@ -23,8 +23,10 @@ class AssembleurLoyerTest {
     /** Base : 11 × 80 / 4 = 220. */
     private final Logement colocation = FabriqueLogement.creer(TypeLogement.COLOCATION, "B301", 80, 3, false, 4);
 
-    private static double montant(Logement l, Profil profil, int echelon, Set<Option> options) {
-        return AssembleurLoyer.assembler(l, profil, echelon, options).montant();
+    private final AssembleurLoyer assembleur = new AssembleurLoyer();
+
+    private double montant(Logement l, Profil profil, int echelon, Set<Option> options) {
+        return assembleur.assembler(l, profil, echelon, options).montant();
     }
 
     @Test
@@ -78,6 +80,6 @@ class AssembleurLoyerTest {
         Set<Option> options = EnumSet.allOf(Option.class);
 
         assertEquals(406.5921, montant(t1MeubleRdc, Profil.ALTERNANT, 0, options), DELTA);
-        assertEquals(406.59, new CalculateurLoyer().calculerLoyer(t1MeubleRdc, Profil.ALTERNANT, 0, options));
+        assertEquals(406.59, new CalculateurLoyer(assembleur).calculerLoyer(t1MeubleRdc, Profil.ALTERNANT, 0, options));
     }
 }

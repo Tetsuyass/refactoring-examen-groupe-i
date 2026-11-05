@@ -2,7 +2,7 @@ package fr.efrei.residence;
 
 public abstract class Logement implements ILogement {
 
-    public static String prefixeAscenceur = "A";
+    public static final String PREFIXE_ASCENSEUR = "A";
     protected String numero;;
     protected TypeLogement type;
     protected double surface;
@@ -35,7 +35,7 @@ public abstract class Logement implements ILogement {
 
     public boolean estAccessiblePMR() {
         // seul le bâtiment A a un ascenseur
-        return etage == 0 || numero.startsWith(prefixeAscenceur);
+        return etage == 0 || numero.startsWith(PREFIXE_ASCENSEUR);
     }
 
     public void loger(Etudiant e) {

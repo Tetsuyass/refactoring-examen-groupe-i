@@ -58,3 +58,39 @@ Chemin des sources : `residence-legacy/src/main/java/fr/efrei/residence/`
 - **Primitive obsession** : le statut du bail, le profil, le canal et le type de logement sont des `String` (`Bail.java` L15, `Etudiant.java` L13 et L17). C'est ce qui alimente tous les `if/else` ci-dessus.
 - **Injection SQL** : les requêtes sont construites par concaténation (`Database.java` L34-54).
 - **Champs publics** : `Bail.parking`, `Bail.paiements`, `Bail.soldeDu`, `Paiement.*`.
+
+## Violations résolues aux paliers 4 et 5
+
+### Palier 4 : Decorator
+
+| Violation du tableau                                                  | Résolution                                                                                                         |
+|-----------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
+| **OCP** : options codées en dur dans `CalculateurLoyer`               | Un décorateur par couche. `AssembleurLoyer` fixe l'ordre : une option = un décorateur + une ligne dans sa liste.   |
+| **Primitive obsession** et **champs publics** : les booléens d'options | Enum `Option` et `Set<Option>` privé dans `Bail`, passé tel quel à `CalculateurLoyer` et `ServiceAttribution`.     |
+
+### Palier 5 : SRP et DIP
+
+| Violation du tableau                                                 | Résolution                                                                                                                                                                                                                  |
+|----------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **SRP** : `GestionResidence` fait tout                               | Classe supprimée, remplacée par `ServiceInscription`, `ServiceParc`, `ServiceAttribution`, `ServiceCycleBail`, `ServiceRelances`, `ServiceRapport` et `Notificateur`.                                                       |
+| **SRP** : `inscrireEtudiant` mélange validation et persistance       | Validation dans `ValidateurInscription`, persistance dans `EtudiantRepository`, identifiant dans `GenerateurIdentifiants`.                                                                                                  |
+| **SRP** : `Bail` met en forme sa quittance                           | Mise en forme déplacée dans `FormateurQuittance`.                                                                                                                                                                           |
+| **SRP** : `Database` mélange connexion, SQL et cache                 | Résolu en partie : `ConnexionBase` porte la connexion, les repositories portent la persistance. Chaque repository construit encore son SQL simulé.                                                                         |
+| **SRP** : `genererRapport()` calcule et met en forme                 | Résolu en partie : le rapport est isolé dans `ServiceRapport`, mais la méthode fait toujours les deux.                                                                                                                      |
+| **OCP** : choix du canal répété                                      | `Notificateur` lit une `Map<Canal, CanalNotification>` construite dans la racine de composition : plus aucun `switch`.                                                                                                      |
+| **DIP** : `Database.getInstance()` et `new CalculateurLoyer()`       | Dépendances reçues par constructeur ; `CalculateurLoyer` reçoit lui-même `AssembleurLoyer`.                                                                                                                                 |
+| **DIP** : `new SmsService()`, `new CourrierService()`, appel statique | Les services dépendent de `Notificateur`, qui dépend de `CanalNotification`.                                                                                                                                                |
+| **DIP** : état global statique                                       | `EtudiantRepository`, `BailRepository`, `LogementRepository` injectés. Plus aucun `static` modifiable : `reinitialiser()` construit un nouveau graphe.                                                                      |
+| **DIP** : lecture de `SmsService.compteurSms` par le reporting       | `ServiceRapport` lit les interfaces `CompteurSms` et `CompteurTimbres`.                                                                                                                                                     |
+
+### Restent à traiter
+
+- **LSP et ISP** : `instanceof Colocation`, `UnsupportedOperationException`, `catch` vide (palier 6).
+- **DIP** : le code manipule encore la classe concrète `Logement` (palier 6).
+- **Hors SOLID** : champs publics `Bail.paiements`, `soldeDu`, `retenues`, `cautionRestituee` et `Paiement.*` ; SQL par concaténation, conservé car il fait partie de la sortie console.
+
+### Compromis
+
+- `FabriqueStrategieProfil`, `FabriqueTarifLogement` et `FabriqueLogement` restent appelées statiquement : elles n'ont aucun état et créent des stratégies ou des entités, pas des services.
+- `FabriqueNotification` disparaît : les canaux portent désormais un état que `ServiceRapport` et l'adaptateur doivent lire, ils sont donc créés une seule fois dans la racine de composition.
+- La construction du graphe est dupliquée entre `Main` et `NouveauSystemeAdapter`, car ce sont les deux seuls endroits autorisés à le faire.

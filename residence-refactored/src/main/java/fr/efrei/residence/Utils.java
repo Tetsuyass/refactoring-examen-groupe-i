@@ -6,7 +6,7 @@ import java.util.Locale;
 
 public class Utils {
 
-    public static double arrondirModele = 100.0;
+    public static final double PRECISION_ARRONDI = 100.0;
 
     public static final DateTimeFormatter FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -20,7 +20,7 @@ public class Utils {
     }
 
     public static double arrondir(double x) {
-        return Math.round(x * arrondirModele) / arrondirModele;
+        return Math.round(x * PRECISION_ARRONDI) / PRECISION_ARRONDI;
     }
 
     public static boolean emailValide(String email) {
