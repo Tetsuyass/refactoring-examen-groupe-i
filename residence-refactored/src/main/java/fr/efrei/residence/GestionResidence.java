@@ -73,17 +73,7 @@ public class GestionResidence {
             System.out.println("Logement " + numero + " existe déjà");
             return null;
         }
-        Logement l = null;
-        if (type.equals(TypeLogement.STUDIO)) {
-            l = new Studio(numero, surface, etage, meuble);
-        } else if (type.equals(TypeLogement.T1)) {
-            l = new T1(numero, surface, etage, meuble);
-        } else if (type.equals(TypeLogement.T2)) {
-            l = new T2(numero, surface, etage, meuble, param);
-        } else if (type.equals(TypeLogement.COLOCATION)) {
-            if (param < 2) param = 2;
-            l = new Colocation(numero, surface, etage, meuble, param);
-        }
+        Logement l = FabriqueLogement.creer(type, numero, surface, etage, meuble, param);
         if (l == null) {
             System.out.println("Type de logement inconnu : " + type);
             return null;
@@ -326,23 +316,7 @@ public class GestionResidence {
             if (b.soldeDu <= 0) continue;
             if (b.getStatut().equals(Statut.ANNULE)) continue;
             Etudiant e = b.getEtudiant();
-            Canal canal = e.getCanalPrefere();
-            switch (canal) {
-                case Canal.EMAIL:
-                    EmailService.envoyer(e.getEmail(), "RELANCE - loyer impayé",
-                            "Bonjour " + e.getPrenom() + ", il reste " + Utils.euros(b.soldeDu) + " à régler sur le bail " + b.getId() + ".");
-                    break;
-                case Canal.SMS:
-                    new SmsService().envoyerSms(e.getTelephone(),
-                            "Campus Vert : " + Utils.euros(b.soldeDu) + " impayés sur " + b.getId());
-                    break;
-                case Canal.COURRIER:
-                    new CourrierService().imprimerEtPoster(e.getNomComplet(), e.getAdresse(), "Relance loyer impayé",
-                            "Il reste " + Utils.euros(b.soldeDu) + " à régler sur le bail " + b.getId() + ".");
-                    break;
-                default:
-                    System.out.println("Canal inconnu " + canal);
-            }
+            FabriqueNotification.creer(e.getCanalPrefere()).relancer(e, b);
         }
     }
 
@@ -411,18 +385,10 @@ public class GestionResidence {
 
     private void notifier(Etudiant e, String sujet, String message) {
         Canal canal = e.getCanalPrefere();
-        if (canal.equals(Canal.EMAIL)) {
-            EmailService.envoyer(e.getEmail(), sujet, message);
-        } else if (canal.equals(Canal.SMS)) {
-            SmsService sms = new SmsService();
-            sms.envoyerSms(e.getTelephone(), sujet + " - " + message);
-        } else if (canal.equals(Canal.COURRIER)) {
-            CourrierService courrier = new CourrierService();
-            courrier.imprimerEtPoster(e.getNomComplet(), e.getAdresse(), sujet, message);
-        }
+        FabriqueNotification.creer(canal).notifier(e, sujet, message);
         // les internationaux reçoivent toujours un email en plus (demande de l'administration)
         if (e.getProfil().equals(Profil.INTERNATIONAL) && !canal.equals(Canal.EMAIL)) {
-            EmailService.envoyer(e.getEmail(), "[EN] " + sujet, message);
+            FabriqueNotification.creer(Canal.EMAIL).notifier(e, "[EN] " + sujet, message);
         }
     }
 }

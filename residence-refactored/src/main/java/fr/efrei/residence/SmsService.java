@@ -3,7 +3,7 @@ package fr.efrei.residence;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SmsService {
+public class SmsService implements CanalNotification {
 
     //format
     public static int minimumChiffreNumeroTel = 10;
@@ -24,5 +24,15 @@ public class SmsService {
         compteurSms++;
         journal.add(new String[]{numero, message});
         System.out.println("[SMS] -> " + numero + " : " + message);
+    }
+
+    @Override
+    public void notifier(Etudiant e, String sujet, String message) {
+        envoyerSms(e.getTelephone(), sujet + " - " + message);
+    }
+
+    @Override
+    public void relancer(Etudiant e, Bail b) {
+        envoyerSms(e.getTelephone(), "Campus Vert : " + Utils.euros(b.soldeDu) + " impayés sur " + b.getId());
     }
 }
